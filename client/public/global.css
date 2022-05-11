@@ -1,0 +1,127 @@
+:root {
+  --primary-color: #da99da;
+  --secondary-color: #ffffff;
+  --primary-background-color: #4e57ba;
+  --secondary-background-color: #2a2d37;
+  --font: Helvetica, "sans-sherif";
+}
+
+body {
+  font-family: var(--font);
+  font-weight: 300;
+  font-size: 16px;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  background-color: var(--secondary-background-color);
+}
+
+nav {
+  width: 100%;
+  background-color: var(--primary-background-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+nav a {
+  color: var(--secondary-background-color);
+  padding: 1em;
+}
+nav a:hover {
+  color: var(--secondary-color);
+}
+
+li {
+  list-style: none;
+}
+
+a.active,
+h1,
+h2 {
+  color: var(--primary-color);
+}
+
+a {
+  text-decoration: none;
+  color: var(--primary-background-color);
+  font-weight: bold;
+}
+
+p {
+  color: var(--secondary-color);
+}
+
+.login-button {
+  color: var(--primary-color);
+  background-color: var(--secondary-background-color);
+  box-shadow: none;
+  cursor: pointer;
+  display: inline-block;
+  padding: 10px 30px;
+  transition: transform 0.2s ease;
+}
+.login-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 11px var(--secondary-color);
+}
+
+.push-btns {
+  margin-left: auto;
+  margin-right: 5px;
+}
+
+.users {
+  margin: auto;
+  border-collapse: collapse;
+  width: 50%;
+}
+
+.users th {
+  border: 1px solid var(--secondary-color);
+  color: var(--primary-color);
+  padding: 5px 10px;
+}
+
+.users td {
+  border: 1px solid var(--secondary-color);
+  color: var(--secondary-color);
+  padding: 5px 10px;
+}
+
+#del-user {
+  color: red;
+}
+
+#edit-user {
+  color: blue;
+}
+.plus {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  background: var(--primary-background-color);
+}
+
+.plus:before,
+.plus:after {
+  content: "";
+  position: absolute;
+  background: var(--primary-color);
+}
+
+.plus:before {
+  left: 50%;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  transform: translateX(-50%);
+}
+
+.plus:after {
+  top: 50%;
+  left: 4px;
+  right: 4px;
+  height: 2px;
+  transform: translateY(-50%);
+}

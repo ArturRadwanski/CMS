@@ -1,0 +1,5 @@
+client/public/*.js
+**/*.map
+client/node_modules
+server/flask_session
+client/public/bundle.css
