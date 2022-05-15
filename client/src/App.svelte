@@ -62,6 +62,8 @@ import Gallery from "./routes/Gallery.svelte";
                 });
             console.log(s);
             if (s == undefined || s.length == 0) {
+                console.log("style undefined");
+                console.log(s);
                 s = [
                     {
                         sel: true,

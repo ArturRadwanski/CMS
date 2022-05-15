@@ -34,12 +34,17 @@
         content.news = content.news.filter((el) => {
             return el.text != "" || el.text != "";
         });
+        let eles = document.querySelector("footer>div").children;
         fetch("/saveContent", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(content),
+            body: JSON.stringify({
+                content: content,
+                lf: eles[0].innerText,
+                rf: eles[2].innerText,
+            }),
         });
         let fd = new FormData();
         fd.append("img", blockImg);
@@ -70,6 +75,7 @@
             cb2: "#2a2d37",
             font: "Helvetica,sans-sherif",
             ord: 0,
+            bur: false,
         },
         {
             sel: true,
@@ -79,6 +85,7 @@
             cb2: "#2a2a2a",
             font: "Helvetica,sans-sherif",
             ord: 0,
+            bur: false,
         },
     ];
 
@@ -97,56 +104,56 @@
     }
     loadContent();
 
-    async function loadStyles() {
-        let s;
-        await fetch("/getStyles")
-            .then((response) => response.json())
-            .then((data) => {
-                s = data.map((a) => {
-                    let c = a.col.split("_");
-                    return {
-                        sel: a.sel,
-                        font: a.font,
-                        ord: a.ord,
-                        cp1: c[0],
-                        cp2: c[1],
-                        cb1: c[2],
-                        cb2: c[3],
-                        bur: a.bur,
-                    };
-                });
-            });
-        console.log(s);
-        if (s == undefined || s.length == 0) {
-            s = [
-                {
-                    sel: true,
-                    cp1: "#da99da",
-                    cp2: "#ffffff",
-                    cb1: "#4e57ba",
-                    cb2: "#2a2d37",
-                    font: "Helvetica,sans-sherif",
-                    ord: 0,
-                    bur: false,
-                },
-                {
-                    sel: true,
-                    cp1: "#dadada",
-                    cp2: "#ffffff",
-                    cb1: "#4e4e4e",
-                    cb2: "#2a2a2a",
-                    font: "Helvetica,sans-sherif",
-                    ord: 0,
-                    bur: false,
-                },
-            ];
-        }
-        styles = s;
-        $stylesSt = styles;
-        console.log(styles);
-        updGS();
-    }
-    loadStyles();
+    // async function loadStyles() {
+    //     let s;
+    //     await fetch("/getStyles")
+    //         .then((response) => response.json())
+    //         .then((data) => {
+    //             s = data.map((a) => {
+    //                 let c = a.col.split("_");
+    //                 return {
+    //                     sel: a.sel,
+    //                     font: a.font,
+    //                     ord: a.ord,
+    //                     cp1: c[0],
+    //                     cp2: c[1],
+    //                     cb1: c[2],
+    //                     cb2: c[3],
+    //                     bur: a.bur,
+    //                 };
+    //             });
+    //         });
+    //     console.log(s);
+    //     if (s == undefined || s.length == 0) {
+    //         s = [
+    //             {
+    //                 sel: true,
+    //                 cp1: "#da99da",
+    //                 cp2: "#ffffff",
+    //                 cb1: "#4e57ba",
+    //                 cb2: "#2a2d37",
+    //                 font: "Helvetica,sans-sherif",
+    //                 ord: 0,
+    //                 bur: false,
+    //             },
+    //             {
+    //                 sel: true,
+    //                 cp1: "#dadada",
+    //                 cp2: "#ffffff",
+    //                 cb1: "#4e4e4e",
+    //                 cb2: "#2a2a2a",
+    //                 font: "Helvetica,sans-sherif",
+    //                 ord: 0,
+    //                 bur: false,
+    //             },
+    //         ];
+    //     }
+    //     styles = s;
+    //     $stylesSt = styles;
+    //     console.log(styles);
+    //     updGS();
+    // }
+    // loadStyles();
 
     function editNew(i, ntitle, ntext) {
         content.news[i].title = ntitle;
@@ -195,6 +202,36 @@
         console.log(styles);
         updGS();
     }
+    function delStyle(i) {
+        let std = styles[i];
+        if (std.sel && styles.findIndex((a) => !a.sel) >= 0)
+            styles[styles.findIndex((a) => !a.sel)].sel = true;
+        styles.splice(i, 1);
+        if (styles.length == 0)
+            styles = [
+                {
+                    sel: true,
+                    cp1: "#da99da",
+                    cp2: "#ffffff",
+                    cb1: "#4e57ba",
+                    cb2: "#2a2d37",
+                    font: "Helvetica,sans-sherif",
+                    ord: 0,
+                    bur: false,
+                },
+            ];
+        styles = styles;
+        $stylesSt = styles;
+        updGS();
+    }
+    function dupStyle(i) {
+        let ns = Object.assign({}, styles[i]);
+        ns.sel = false;
+        styles.push(ns);
+        styles = styles;
+        $stylesSt = styles;
+        updGS();
+    }
     function updGS() {
         let cs = styles.find((a) => a.sel);
         if (cs == undefined) cs = styles[0];
@@ -216,7 +253,7 @@
         on:click={() => {
             $stylesEditMode = false;
             saveStyles();
-        }}>Exit</button
+        }}>Save And Exit</button
     ><button
         on:click={() => {
             function downloadObjectAsJson(exportObj, exportName) {
@@ -259,6 +296,7 @@
         ><button
             class="login-button"
             on:click={() => {
+                styles = $stylesSt;
                 $stylesEditMode = true;
             }}>Edit Styles</button
         >
@@ -270,8 +308,30 @@
 >
     {#if $stylesEditMode}
         {#each styles as style, i}
-            <Style styl={style} ind={i} sStyle={setStyle} />
+            <Style
+                styl={style}
+                ind={i}
+                sStyle={setStyle}
+                {delStyle}
+                {dupStyle}
+            />
         {/each}
+        <button
+            on:click={() => {
+                styles.push({
+                    sel: false,
+                    cp1: "#da99da",
+                    cp2: "#ffffff",
+                    cb1: "#4e57ba",
+                    cb2: "#2a2d37",
+                    font: "Helvetica,sans-sherif",
+                    ord: 0,
+                    bur: false,
+                });
+                styles = styles;
+                $stylesSt = styles;
+            }}>New Style</button
+        >
     {:else}
         {#if $ord == 0}
             <Slider />
