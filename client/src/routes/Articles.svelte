@@ -46,8 +46,9 @@ function goToArticle(title, e){
 }
 </script>
 
-<Filter />
-<div id="articlesContainer">
+<div id="cnt">
+    <Filter />
+    <div id="articlesContainer">
         {#each $articles as article}
         <div class="card" on:click="{(e) => goToArticle(article[0], e)}">
             <div class="card-body">
@@ -67,12 +68,14 @@ function goToArticle(title, e){
         </div>
         {/if}
     
+    </div>
 </div>
 <style>
 .card{
     background-color: var(--primary-background-color);
     width: 20%;
     height: 30vh;
+    min-height: 185px;
     transition: transform 0.2s ease;
     margin-top: 3vh;
     min-width: 190px;
@@ -99,6 +102,10 @@ function goToArticle(title, e){
     gap: 4%;
     margin-left:2%;
     flex-wrap: wrap;
+}
+#cnt{
+    display: flex;
+    flex-direction: column;
 }
 .card-text{
     font-size: 13px;

@@ -45,6 +45,8 @@
         flex-direction: column;
         height: 25vh;
         justify-content: space-between;
+        min-width: 200px;
+        min-height: 240px;
     }
     select{
         width: 70%;

@@ -23,6 +23,7 @@
     import Carousel from "./components/Carousel.svelte";
     import BurgerMenu from "svelte-burger-menu";
     import Footer from "./components/Footer.svelte";
+import Gallery from "./routes/Gallery.svelte";
 
     // Used for SSR. A falsy value is ignored by the Router.
     export let url = "";
@@ -120,6 +121,7 @@
             <BurgerMenu>
                 <NavLink to="/">Home</NavLink><br />
                 <NavLink to="Articles">Articles</NavLink><br />
+                <NavLink to="gallery">Gallery</NavLink><br />
                 {#if $loggedIn}
                     {#if $admin}
                         <NavLink to="managePermissions"
@@ -134,6 +136,7 @@
         {:else}
             <NavLink to="/">Home</NavLink>
             <NavLink to="Articles">Articles</NavLink>
+            <NavLink to="gallery">Gallery</NavLink>
             {#if $loggedIn}
                 {#if $admin}
                     <NavLink to="managePermissions">Manage Permissions</NavLink>
@@ -152,6 +155,7 @@
         <Route path="/" component={Home} />
         <Route path="Articles" component={Articles} />
         <Route path="managePermissions" component={AccessManagment} />
+        <Route path="gallery" component={Gallery} />
         {#if !$loggedIn}
             <Route path="login"><AuthorizationForm form="/login" /></Route>
             <Route path="register"><AuthorizationForm form="/register" /></Route
