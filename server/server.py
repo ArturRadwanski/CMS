@@ -4,6 +4,8 @@ from flask_session import Session
 import base64
 import sqlite3
 import hashlib
+import uuid
+import os
 
 app = Flask(__name__, static_url_path='',
             static_folder='../client/public',
@@ -12,6 +14,7 @@ app = Flask(__name__, static_url_path='',
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
+uploads_dir = '../client/public/photos'
 
 
 def Connect(sqlCommand: str):
@@ -347,6 +350,29 @@ def getstyles():
         rr.append({"col": r[0], "font": r[1], "ord": r[2], "sel": bool(r[3])})
     return app.response_class(response=json.dumps(rr), status=200, mimetype="application/json")
 
+@app.route("/addPhoto", methods = ["POST"])
+def addPhoto():
+    img = request.files["img"]
+    print(img)
+    uniqueFileName = str(uuid.uuid4())
+    img.filename = uniqueFileName 
+    img.save(os.path.join(uploads_dir, img.filename))
+    return app.response_class(response=json.dumps({"success": True}), status=200, mimetype="application/json")
+
+@app.route("/photos/<name>", methods = ["POST", "GET"])
+def photos(name):
+    return send_from_directory("../client/public/photos", name)
+
+@app.route("/getPhotosNames", methods = ["POST"])
+def getPhotosNames():
+    files = os.listdir("../client/public/photos")
+    return app.response_class(response=json.dumps({"files": files}), status=200, mimetype="application/json")
+
+@app.route("/deletePhoto", methods= ["POST"])
+def deletePhoto():
+    req = request.get_json()
+    os.remove("../client/public/photos/" + req['name'])
+    return app.response_class(response=json.dumps({"success": True}), status=200, mimetype="application/json")
 
 @app.errorhandler(404)
 def not_found(lol):
