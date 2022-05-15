@@ -1,4 +1,5 @@
 <script >
+    import {navigate} from "svelte-routing"
     function addDataToServer(img, title, description, href){     //blob string string string
         let body = new FormData()
         body.append("img", img)
@@ -8,7 +9,11 @@
         let res = fetch("/pushSlide", {
             method: "POST",
             body:  body,
-        }).then(res => res.json())
+        })
+        .then(res => {
+            res.json()
+            navigate("/")
+        })
         return res
     }
     function validateData(){
@@ -24,6 +29,7 @@
         }
         console.log(photo)
         addDataToServer(photo, title, desc, "/")
+       
     }
 </script>
 <input type="file" id="photo"/>
