@@ -2,6 +2,8 @@
     export let styl;
     export let ind;
     export let sStyle;
+    export let delStyle;
+    export let dupStyle;
     let bbb = styl.bur ? "1" : "0";
     let fff = styl.font;
     function update() {
@@ -67,6 +69,16 @@
         >
         <div>{p3}</div>
     </div>
+    <button
+        on:click={() => {
+            dupStyle(ind);
+        }}>duplicate</button
+    >
+    <button
+        on:click={() => {
+            delStyle(ind);
+        }}>delete</button
+    >
 </div>
 
 <style>

@@ -23,7 +23,8 @@ def Connect(sqlCommand: str):
     myConnection.close()
     return output
 
-def ConnectArgs(sqlCommand : str, argument):
+
+def ConnectArgs(sqlCommand: str, argument):
     myConnection = sqlite3.connect('users.sqlite')
     cursor = myConnection.cursor()
     cursor.execute(sqlCommand, argument)
@@ -38,7 +39,6 @@ def convertToBinaryData(file):
     return blobData
 
 
-
 # utwórz bazę danych jeśli nie istnieje
 Connect("CREATE TABLE IF NOT EXISTS users ( nickname TEXT UNIQUE NOT NULL, password TEXT NOT NULL, admin INT1 DEFAULT 0)")
 try:
@@ -49,11 +49,14 @@ Connect("CREATE TABLE IF NOT EXISTS slider (title TEXT UNIQUE NOT NULL, descript
 Connect("CREATE TABLE IF NOT EXISTS articles (title TEXT UNIQUE NOT NULL, content TEXT NOT NULL, comments TEXT, category TEXT)")
 Connect("CREATE TABLE IF NOT EXISTS news (id INTEGER NOT NULL PRIMARY KEY, title TEXT NOT NULL DEFAULT '', text TEXT NOT NULL DEFAULT '')")
 Connect("CREATE TABLE IF NOT EXISTS block (id INTEGER NOT NULL PRIMARY KEY, title TEXT NOT NULL DEFAULT '', text TEXT NOT NULL DEFAULT '', img BLOB DEFAULT NULL)")
-Connect("CREATE TABLE IF NOT EXISTS styles (id INTEGER NOT NULL PRIMARY KEY, colors TEXT NOT NULL, font TEXT NOT NULL, ord INT NOT NULL, sel INT NOT NULL)")
+Connect("CREATE TABLE IF NOT EXISTS styles (id INTEGER NOT NULL PRIMARY KEY, colors TEXT NOT NULL, font TEXT NOT NULL, ord INT NOT NULL, sel INT NOT NULL, bur INT NOT NULL)")
 
 
 if len(Connect("SELECT * FROM block WHERE id = 0")) == 0:
     Connect("INSERT INTO block (id, title, text) VALUES (0, 'null', 'null')")
+
+if len(Connect("SELECT * FROM block WHERE id = 1")) == 0:
+    Connect("INSERT INTO block (id, title, text) VALUES (1, 'null', 'null')")
 
 
 @app.route("/")
@@ -129,7 +132,8 @@ def logIn():
 
 @app.route("/checkLogin", methods=["POST", ])
 def checkLogin():
-    data = {"logged": session.get("logged", False), "admin": session.get("admin", False), "nickname": session.get("nickname")}
+    data = {"logged": session.get("logged", False), "admin": session.get(
+        "admin", False), "nickname": session.get("nickname")}
     return app.response_class(response=json.dumps(data), status=200, mimetype="application/json")
 
 
@@ -147,20 +151,24 @@ def loadUsers():
         users = Connect("SELECT * FROM users")
         return app.response_class(response=json.dumps(users), status=200, mimetype="application/json")
     else:
-        users = Connect(f"SELECT * FROM users WHERE nickname ='{session['nickname']}'")
+        users = Connect(
+            f"SELECT * FROM users WHERE nickname ='{session['nickname']}'")
         return app.response_class(response=json.dumps(users), status=200, mimetype="application/json")
+
 
 @app.route("/changeUser", methods=["POST"])
 def changeUser():
-    req = request.get_json(force= True)
+    req = request.get_json(force=True)
     password = req["password"]
     if password == '':
-        password = Connect(f"SELECT password FROM users WHERE nickname = '{req['oldNickname']}'")[0][0]
+        password = Connect(
+            f"SELECT password FROM users WHERE nickname = '{req['oldNickname']}'")[0][0]
     else:
         password = password.encode()
         password = hashlib.sha256(password)
         password = password.hexdigest()
-    Connect(f"UPDATE users SET nickname= '{req['nickname']}', password = '{password}', admin = '{req['access']}' WHERE nickname = '{req['oldNickname']}' ")
+    Connect(
+        f"UPDATE users SET nickname= '{req['nickname']}', password = '{password}', admin = '{req['access']}' WHERE nickname = '{req['oldNickname']}' ")
     if(session["admin"]):
         if(req["oldNickname"] == session["nickname"]):
             session["nickname"] == req["nickname"]
@@ -168,26 +176,32 @@ def changeUser():
         return app.response_class(response=json.dumps(users), status=200, mimetype="application/json")
     else:
         session['nickname'] = req["nickname"]
-        users = Connect(f"SELECT * FROM users WHERE nickname ='{session['nickname']}'")
+        users = Connect(
+            f"SELECT * FROM users WHERE nickname ='{session['nickname']}'")
         return app.response_class(response=json.dumps(users), status=200, mimetype="application/json")
+
 
 @app.route("/pushSlide", methods=["POST"])
 def pushSlide():
     title = request.form["title"]
-    description =  request.form["description"]
+    description = request.form["description"]
     href = request.form["href"]
     img = request.files["img"]
-    ConnectArgs("INSERT INTO slider VALUES (?, ?, ?, ?)", (title, description, img.read(), href))
+    ConnectArgs("INSERT INTO slider VALUES (?, ?, ?, ?)",
+                (title, description, img.read(), href))
     #Connect("INSERT INTO slider VALUES ('" + title +"', '" + description + "', " +  str(img.read()) + ", '" + href + "')")
     return app.response_class(response=json.dumps({"success": True}), status=200, mimetype="application/json")
+
 
 @app.route("/loadSlider", methods=["POST"])
 def loadSlider():
     data = Connect("SELECT * FROM slider")
     res = []
     for x in data:
-        res.append({"title":x[0], "description":x[1], "image": base64.b64encode(x[2]).decode(), "href": x[3]})
+        res.append({"title": x[0], "description": x[1], "image": base64.b64encode(
+            x[2]).decode(), "href": x[3]})
     return app.response_class(response=json.dumps(res), status=200, mimetype="application/json")
+
 
 @app.route("/delSlider", methods=["POST"])
 def delSlider():
@@ -195,21 +209,25 @@ def delSlider():
     Connect(f"DELETE FROM slider WHERE title = '{req['title']}'")
     return app.response_class(response=json.dumps({"success": True}), status=200, mimetype="application/json")
 
+
 @app.route("/addArticle", methods=["POST"])
 def addArticle():
     req = request.get_json()
     try:
-        Connect(f"INSERT INTO articles VALUES('{req['title']}', '{req['content']}', '[]', '{req['category']}')")
+        Connect(
+            f"INSERT INTO articles VALUES('{req['title']}', '{req['content']}', '[]', '{req['category']}')")
         return app.response_class(response=json.dumps({"success": True}), status=200, mimetype="application/json")
     except sqlite3.IntegrityError:
-        return app.response_class(response = json.dumps({"success": False, "err": "Article with this title already exists"}), status=400, mimetype="application/json")
+        return app.response_class(response=json.dumps({"success": False, "err": "Article with this title already exists"}), status=400, mimetype="application/json")
     except:
         return app.response_class(response=json.dumps({"success": False, "err": "Unexpected error"}), status=500, mimetype="application/json")
+
 
 @app.route("/getArticles", methods=["POST"])
 def getArticles():
     articles = Connect("SELECT * FROM articles")
     return app.response_class(response=json.dumps(articles), status=200, mimetype="application/json")
+
 
 @app.route("/delArticle", methods=["POST"])
 def delArticle():
@@ -217,44 +235,57 @@ def delArticle():
     Connect(f"DELETE FROM articles WHERE title = '{req['title']}'")
     return app.response_class(response=json.dumps({"success": True}), status=200, mimetype="application/json")
 
+
 @app.route("/showArticle", methods=["POST"])
 def showArticle():
     req = request.get_json()
     data = Connect(f"SELECT * FROM articles WHERE title = '{req['title']}'")
-    res = {"title": data[0][0], "content": data[0][1], "comments": data[0][2], "category": data[0][3]}
+    res = {"title": data[0][0], "content": data[0][1],
+           "comments": data[0][2], "category": data[0][3]}
     return app.response_class(response=json.dumps(res), status=200, mimetype="application/json")
+
 
 @app.route("/editArticle", methods=["POST"])
 def editArticle():
     req = request.get_json()
-    Connect(f"UPDATE articles SET title = '{req['title']}', content = '{req['content']}', category = '{req['category']}' WHERE title = '{req['oldTitle']}' ")
+    Connect(
+        f"UPDATE articles SET title = '{req['title']}', content = '{req['content']}', category = '{req['category']}' WHERE title = '{req['oldTitle']}' ")
     return app.response_class(response=json.dumps({"success": True}), status=200, mimetype="application/json")
+
 
 @app.route("/pushComment", methods=["POST"])
 def pushComment():
     req = request.get_json()
-    strComments = Connect(f"SELECT comments FROM articles WHERE title = '{req['title']}'")
+    strComments = Connect(
+        f"SELECT comments FROM articles WHERE title = '{req['title']}'")
     Comments = json.loads(strComments[0][0])
     Comments.append({"nickname": req["nickname"], "comment": req["comment"]})
     strComments = json.dumps(Comments)
-    Connect(f"UPDATE articles SET comments = '{strComments}' WHERE title = '{req['title']}'")
+    Connect(
+        f"UPDATE articles SET comments = '{strComments}' WHERE title = '{req['title']}'")
     return app.response_class(response=strComments, status=200, mimetype="application/json")
+
 
 @app.route("/delComment", methods=["POST"])
 def delComment():
     req = request.get_json()
-    strComments = Connect(f"SELECT comments FROM articles WHERE title = '{req['title']}'")[0][0]
+    strComments = Connect(
+        f"SELECT comments FROM articles WHERE title = '{req['title']}'")[0][0]
     comments: list = json.loads(strComments)
     comments.remove(req['comment'])
     strComments = json.dumps(comments)
-    Connect(f"UPDATE articles SET comments = '{strComments}' WHERE title = '{req['title']}'")
+    Connect(
+        f"UPDATE articles SET comments = '{strComments}' WHERE title = '{req['title']}'")
     return app.response_class(response=strComments, status=200, mimetype="application/json")
+
 
 @app.route("/applyFilters", methods=["POST"])
 def applyFilters():
     req = request.get_json()
-    articles = Connect(f"SELECT * FROM articles WHERE title LIKE '%{req['search']}%' OR category LIKE '%{req['search']}%' ORDER BY {req['sort']}")
+    articles = Connect(
+        f"SELECT * FROM articles WHERE title LIKE '%{req['search']}%' OR category LIKE '%{req['search']}%' ORDER BY {req['sort']}")
     return app.response_class(response=json.dumps(articles), status=200, mimetype="application/json")
+
 
 @app.route("/public/<path:path>", methods=["GET", "POST"])
 def catch_all(path):
@@ -270,7 +301,7 @@ def getcontent():
         for r in res:
             rr.append({"title": r[0], "text": r[1], "id": r[2]})
         data["content"]["news"] = rr
-        res = Connect("SELECT title, text FROM block")
+        res = Connect("SELECT title, text FROM block WHERE id = 0")
         rrr = {}
         if len(res) == 0:
             rrr = {"title": "null", "text": "null"}
@@ -287,12 +318,23 @@ def getcontent():
         return app.response_class(response=json.dumps(data), status=200, mimetype="application/json")
 
 
+@app.route("/getFooter", methods=["GET", "POST"])
+def getfooter():
+    data = Connect("SELECT title, text FROM block WHERE id = 1")[0]
+    lf = data[0]
+    rf = data[1]
+    return app.response_class(response=json.dumps({"lf": lf, "rf": rf}), status=200, mimetype="application/json")
+
+
 @app.route("/saveContent", methods=["POST"])
 def savecontent():
-    req = request.get_json()
+    preq = request.get_json()
+    req = preq["content"]
     block = req["block"]
     ConnectArgs("UPDATE block SET title = ?, text = ? WHERE id = 0",
                 (block["title"], block["text"]))
+    ConnectArgs("UPDATE block SET title = ?, text = ? WHERE id = 1",
+                (preq["lf"], preq["rf"]))
     news = req["news"]
     for ne in news:
         if "id" in ne:
@@ -332,19 +374,22 @@ def getbimg():
 @app.route("/saveStyles", methods=["POST"])
 def savestyles():
     req = request.get_json()
+    print(req)
     Connect("DELETE FROM styles")
     for r in req:
-        ConnectArgs("INSERT INTO styles (colors, font, ord, sel) VALUES (?, ?, ?, ?)",
-                    (r["col"], r["font"], r["ord"], r["sel"]))
+        ConnectArgs("INSERT INTO styles (colors, font, ord, sel, bur) VALUES (?, ?, ?, ?, ?)",
+                    (r["col"], r["font"], r["ord"], r["sel"], r["bur"]))
     return app.response_class(response=json.dumps({"ok": "true"}), status=200, mimetype="application/json")
 
 
 @app.route("/getStyles", methods=["GET", "POST"])
 def getstyles():
-    con = Connect("SELECT colors,font,ord,sel FROM styles")
+    con = Connect("SELECT colors,font,ord,sel,bur FROM styles")
     rr = []
     for r in con:
-        rr.append({"col": r[0], "font": r[1], "ord": r[2], "sel": bool(r[3])})
+        rr.append({"col": r[0], "font": r[1], "ord": r[2],
+                  "sel": bool(r[3]), "bur": bool(r[4])})
+    print(rr)
     return app.response_class(response=json.dumps(rr), status=200, mimetype="application/json")
 
 
